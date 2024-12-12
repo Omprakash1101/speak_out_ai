@@ -1,19 +1,11 @@
-# 🎈 Blank app template
+# Speak Out AI
 
-A simple Streamlit app template for you to modify!
+I am Speak out AI which is made by Mr. G. Omprakash from EEC,Chennai
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+My aim is to provide you a better mental health analysis
 
-### How to run it on your own machine
+To help you out from mental health issues and feel free to talk.
 
-1. Install the requirements
+Demo Link(https://speakoutai.streamlit.app/)
 
-   ```
-   $ pip install -r requirements.txt
-   ```
-
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+Note: This project is under progress 
