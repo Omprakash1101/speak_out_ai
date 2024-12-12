@@ -6,6 +6,11 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from pyspark.ml.feature import Tokenizer, HashingTF, IDF
 from pyspark.ml import Pipeline
+import os
+
+os.system("apt-get update")
+os.system("apt-get install openjdk-8-jdk -y")
+os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-8-openjdk-amd64'
 
 spark = SparkSession.builder.appName("AI_Response").getOrCreate()
 df = spark.read.csv("training_data.csv", header=True, inferSchema=True)
