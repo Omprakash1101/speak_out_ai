@@ -12,7 +12,7 @@ os.system("apt-get update")
 os.system("apt-get install openjdk-8-jdk -y")
 os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-8-openjdk-amd64'
 
-spark = SparkSession.builder.appName("AI_Response").getOrCreate()
+spark = SparkSession.builder.appName("AI_Response").master("local[*]").getOrCreate()
 df = spark.read.csv("training_data.csv", header=True, inferSchema=True)
 print(df.show())
 
