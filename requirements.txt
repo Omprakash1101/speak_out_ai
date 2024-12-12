@@ -1,3 +1,5 @@
 streamlit
 pandas
 pyspark
+scikit-learn
+numpy
