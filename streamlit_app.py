@@ -48,7 +48,8 @@ def get_similar_answer(input_question, threshold=0.2):
     # Return an answer if similarity is above the threshold
     if highest_similarity >= threshold:
         return df.iloc[most_similar_idx]['answer']
-    return f"Sorry, I don't have an answer to that question.{highest_similarity}"
+    else:
+        return f"Sorry, I don't have an answer to that question.{highest_similarity}"
 
 def get_answer(input_question):
     """
@@ -80,6 +81,16 @@ if prompt := st.chat_input("What is up?"):
         st.markdown(prompt)
     o=get_answer(prompt)+"\n"
     # Generate a response using the OpenAI API.
+    if o.startswith("Sorry,"):
+        try:
+            odf = pd.read_csv("training_data.csv")
+        except FileNotFoundError:
+        # Create an empty DataFrame with the required columns if the file doesn't exist
+            odf = pd.DataFrame(columns=["question", "category","tone","lang","answer"])
+        new_row = pd.DataFrame([{"question": prompt,"category":"","tone":"","lang":"","answer":""}])  # Leave the 'answer' column empty if required
+        odf = pd.concat([odf,new_row], ignore_index=True)
+        odf.to_csv("training_data.csv", index=False)
+        o="Apologise first, I am currently working on it and thank you for your input"
     stream = [o,"\nCurrently We are working on it"]
     # Stream the response to the chat using `st.write_stream`, then store it in 
     # session state.

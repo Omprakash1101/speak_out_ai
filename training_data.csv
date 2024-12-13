@@ -1,8 +1,12 @@
 question,category,tone,lang,answer
 hi hello ,greeting,supportive,en,"hi ,how are u?"
+good,FB,FB,en,Thank you for your Feedback
+Sad depression worried depressed nothing,RN,supportive,en,"Why, What happened?"
 good morning ,greeting,supportive,en,"hi Good morning, how are u?"
+good afternoon ,greeting,supportive,en,"hi Good afternoon, how are u?"
+good evening ,greeting,supportive,en,"hi Good evening, how are u?"
+good night ,greeting,supportive,en,"hi Good night, how are u?"
 what are the symptoms of depression,GK,information,en,"Symptoms include fatigue, low mood, and lack of interest in activities"
 I am fine,RP,supportive,en,"Okay, Tell what happened?"
 i didn't know how to tell that,RP,supportive,en,"No worries we are there for you, trust me"
-Sad depression worried depressed,RN,supportive,en,"Why, What happened?"
 okay bye thank you,GB,ending,en,"Thank you, Have a nice day"
