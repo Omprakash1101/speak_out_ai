@@ -1,56 +1,63 @@
 import streamlit as st
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
-from pyspark.ml.linalg import DenseVector
+import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from pyspark.ml.feature import Tokenizer, HashingTF, IDF
-from pyspark.ml import Pipeline
-import os
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import re
 
-os.system("apt-get update")
-os.system("apt-get install openjdk-8-jdk -y")
-os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-8-openjdk-amd64'
+# Load the dataset
+df = pd.read_csv("training_data.csv")
 
-spark = SparkSession.builder.appName("AI_Response").master("local[*]").getOrCreate()
-df = spark.read.csv("training_data.csv", header=True, inferSchema=True)
-print(df.show())
+# Preprocess the questions
+def clean_text(text):
+    """
+    Cleans the text by removing special characters, extra spaces, and lowercasing.
+    """
+    text = text.lower()
+    text = re.sub(r"[^a-zA-Z0-9\s]", "", text)  # Remove special characters
+    text = re.sub(r"\s+", " ", text).strip()  # Remove extra spaces
+    return text
 
-df = df.withColumn('question', F.lower(F.col('question')))
-print(df.show())
+df['question'] = df['question'].apply(clean_text)
 
-tokenizer = Tokenizer(inputCol="question", outputCol="words")
-hashing_tf = HashingTF(inputCol="words", outputCol="raw_features", numFeatures=20)
-idf = IDF(inputCol="raw_features", outputCol="features")
-pipeline = Pipeline(stages=[tokenizer, hashing_tf, idf])
-model = pipeline.fit(df)
-result = model.transform(df)
-result.show(truncate=False)
+# Create a TF-IDF Vectorizer
+vectorizer = TfidfVectorizer(stop_words='english')  # Use stop words for better vectorization
+tfidf_matrix = vectorizer.fit_transform(df['question'])
 
-def extract_features(row):
-    return np.array(row['features'].toArray())
-features = result.rdd.map(extract_features).collect()
-def get_similar_answer(input_question):
-    input_question = input_question.strip().lower()
-    input_vector = model.transform(spark.createDataFrame([(input_question,)], ['question'])).select('features').head()[0].toArray().reshape(1, -1)
-    similarities = cosine_similarity(input_vector, features)
+def get_similar_answer(input_question, threshold=0.2):
+    """
+    Finds the best matching answer based on cosine similarity.
+    """
+    # Preprocess the input question
+    input_question = clean_text(input_question)
+    
+    # Vectorize the input question
+    input_vector = vectorizer.transform([input_question])
+    
+    # Compute cosine similarities
+    similarities = cosine_similarity(input_vector, tfidf_matrix).flatten()
+    
+    # Find the most similar question index
     most_similar_idx = similarities.argmax()
-    answer = result.select('answer').collect()[most_similar_idx][0]
-    return answer
-# Function to find the most relevant answer based on input question
+    highest_similarity = similarities[most_similar_idx]
+    
+    # Return an answer if similarity is above the threshold
+    if highest_similarity >= threshold:
+        return df.iloc[most_similar_idx]['answer']
+    return f"Sorry, I don't have an answer to that question.{highest_similarity}"
+
 def get_answer(input_question):
-    input_question = input_question.strip().lower()
-
-    # Convert to lower case and match input question with questions in the DataFrame
-    result = df.filter(F.lower(df['question']).contains(input_question.lower()))
-
-    # Check if a match was found
-    if result.count() > 0:
-        answer = result.select('answer').first()[0]
-        return answer
-    else:
-        return get_similar_answer(input_question.lower())
-
+    """
+    Finds a direct match answer; if no match, falls back on get_similar_answer.
+    """
+    filtered = df[df['question'].str.contains(input_question, case=False)]
+    if not filtered.empty:
+        return filtered['answer'].iloc[0] 
+    return get_similar_answer(input_question)
 
 st.header("Speak Out AI")
 st.write("I am Speak out AI which is made by Mr. G. Omprakash from EEC,Chennai")
