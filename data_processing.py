@@ -6,6 +6,7 @@ from pyspark.ml import Pipeline
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 
+
 spark = SparkSession.builder.appName("AI_Response_Cosine_Similarity").getOrCreate()
 df = spark.read.csv("training_data.csv", header=True, inferSchema=True)
 print(df.show())

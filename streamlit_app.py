@@ -8,9 +8,41 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
+import streamlit as st
+
+# Authenticate with Google Sheets API using service account credentials
+def authenticate_gspread():
+    # Load credentials from Streamlit Secrets
+    credentials_json = st.secrets["gspread_credentials"]
+    
+    # Define the scope for access
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    # Authenticate the service account
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(credentials_json, scope)
+    
+    # Authorize gspread with the credentials
+    gc = gspread.authorize(credentials)
+    return gc
+
+# Connect to a specific Google Sheet
+def get_google_sheet(sheet_name):
+    gc = authenticate_gspread()
+    all_spreadsheets = gc.openall()  # List all spreadsheets that the service account has access to
+    for sheet in all_spreadsheets:
+        print(sheet.title)
+    # Open your Google Sheet by name
+    spreadsheet = gc.open(sheet_name)
+    
+    # Optionally, select the first sheet by index, or any specific sheet
+    worksheet = spreadsheet.sheet1
+    return worksheet
 # Load the dataset
-df = pd.read_csv("training_data.csv")
+data=(get_google_sheet("training_data.csv").get_all_records())
+df = pd.DataFrame(data)
 
 # Preprocess the questions
 def clean_text(text):
@@ -82,15 +114,8 @@ if prompt := st.chat_input("What is up?"):
     o=get_answer(prompt)+"\n"
     # Generate a response using the OpenAI API.
     if o.startswith("Sorry,"):
-        try:
-            odf = pd.read_csv("training_data.csv")
-        except FileNotFoundError:
-        # Create an empty DataFrame with the required columns if the file doesn't exist
-            odf = pd.DataFrame(columns=["question", "category","tone","lang","answer"])
-        new_row = pd.DataFrame([{"question": prompt,"category":"","tone":"","lang":"","answer":""}])  # Leave the 'answer' column empty if required
-        odf = pd.concat([odf,new_row], ignore_index=True)
-        odf.to_csv("training_data.csv", index=False)
-        o="Apologise first, I am currently working on it and thank you for your input"
+        o="Kindly fill the input in the above link for update,"
+        st.page_link("https://forms.gle/hyaTjgwPfaN7S3xP6",label="link for input")
     stream = [o,"\nCurrently We are working on it"]
     # Stream the response to the chat using `st.write_stream`, then store it in 
     # session state.
